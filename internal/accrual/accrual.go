@@ -29,6 +29,7 @@ func CheckOrder(order string) (*model.Accrual, error) {
 		decoder := json.NewDecoder(resp.Body)
 		err := decoder.Decode(&accrual)
 		if err != nil {
+			fmt.Println(err.Error())
 			return nil, err
 		}
 		return accrual, nil
