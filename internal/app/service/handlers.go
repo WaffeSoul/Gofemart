@@ -102,6 +102,7 @@ func (s *Service) GetOrders() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResp)
 	})
@@ -110,6 +111,7 @@ func (s *Service) GetOrders() http.Handler {
 
 func (s *Service) GetBalance() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
 		res := model.Balance{
 			Current:  0,
 			Withdraw: 0,
@@ -174,6 +176,7 @@ func (s *Service) GetBalance() http.Handler {
 func (s *Service) Withdraw() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var resJSON model.ReqWithdraw
+		w.Header().Add("Content-Type", "application/json")
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&resJSON)
 		if err != nil {
@@ -243,6 +246,7 @@ func (s *Service) Withdraw() http.Handler {
 
 func (s *Service) Withdrawals() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
 		userId := r.Context().Value("userId").(int)
 
 		res, err := s.store.Withdrawals().FindByUserId(userId)

@@ -3,6 +3,7 @@ package accrual
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -30,6 +31,7 @@ func CheckOrder(order string) (*model.Accrual, error) {
 	case 204:
 		return nil, errors.New("the order is not registered in the payment system")
 	case 429:
+		fmt.Println("too many requests")
 		time.Sleep(time.Second * 2)
 		return nil, errors.New("too many requests")
 	case 500:
