@@ -26,7 +26,7 @@ func run() error {
 	s := service.NewService(store, *jwtManager)
 	mux := http.NewServeMux()
 	app.AddRoute(mux, s)
-	return http.ListenAndServe("localhost:8090", mux)
+	return http.ListenAndServe(addrServer, mux)
 }
 
 func main() {
