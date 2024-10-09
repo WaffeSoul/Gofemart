@@ -25,10 +25,6 @@ func (s *Service) SignUp() http.Handler {
 			return
 		}
 		user, err := s.store.Users().FindByName(userReq.Username)
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
 		if user != nil {
 			w.WriteHeader(http.StatusConflict)
 			return
