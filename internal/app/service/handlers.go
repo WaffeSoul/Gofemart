@@ -71,6 +71,7 @@ func (s *Service) SetOrder() http.Handler {
 
 func (s *Service) GetOrders() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
 		userId := r.Context().Value("userId").(int)
 		orders, err := s.store.Orders().FindByUserId(userId)
 		if err != nil {
@@ -102,7 +103,7 @@ func (s *Service) GetOrders() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		w.Header().Add("Content-Type", "application/json")
+		
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResp)
 	})

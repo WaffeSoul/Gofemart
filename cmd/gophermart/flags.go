@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"gofemart/internal/accrual"
 	"os"
 )
@@ -26,5 +27,8 @@ func parseFlags() {
 	if envAddrAccrual := os.Getenv("ACCRUAL_SYSTEM_ADDRESS"); envAddrAccrual != "" {
 		accrual.UrlAccrual = envAddrAccrual
 	}
+	fmt.Println(addrServer)
+	fmt.Println(addrDB)
+	fmt.Println(accrual.UrlAccrual)
 
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"gofemart/internal/crypto"
@@ -21,6 +22,15 @@ func (s *Service) SignUp() http.Handler {
 		err := decoder.Decode(&userReq)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		user, err := s.store.Users().FindByName(userReq.Username)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		if user != nil {
+			w.WriteHeader(http.StatusConflict)
 			return
 		}
 		hashedPassword, err := crypto.HashPassword(userReq.Password)
@@ -58,21 +68,29 @@ func (s *Service) SignIn() http.Handler {
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&userReq)
 		if err != nil {
+			fmt.Println(1)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		user, err := s.store.Users().FindByName(userReq.Username)
 		if err != nil {
+			fmt.Println(2)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		if user == nil || !crypto.IsPasswordCorrect(user.Password, userReq.Password) {
+			fmt.Println(3)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		accessToken, refreshToken, err := s.JwtManager.GenerateTokens(context.Background(), user.Id, s.store)
 		if err != nil {
+			fmt.Println(4)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

@@ -43,14 +43,17 @@ func (p *Repository) FindByUserId(id int) (*[]model.Order, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	data := &[]model.Order{}
-	err = conn.QueryRow(context.Background(), "select * from orders where user_id=$1", id).Scan(data)
+	rows, err := conn.Query(context.Background(), "select * from orders where user_id=$1", id)
 	if err == pgx.ErrNoRows {
 		return nil, errors.New("no user_id in db")
 	} else if err != nil {
 		return nil, err
 	}
-	return data, nil
+	data, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Order])
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
 }
 
 func (p *Repository) FindByNumber(number string) (*model.Order, error) {
@@ -59,14 +62,17 @@ func (p *Repository) FindByNumber(number string) (*model.Order, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	data := &model.Order{}
-	err = conn.QueryRow(context.Background(), "select * from orders where number=$1", number).Scan(&data)
+	rows, err := conn.Query(context.Background(), "select * from orders where number=$1", number)
 	if err == pgx.ErrNoRows {
 		return nil, errors.New("no number in db")
 	} else if err != nil {
 		return nil, err
 	}
-	return data, nil
+	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Order])
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
 }
 
 func (p *Repository) Migrate() error {

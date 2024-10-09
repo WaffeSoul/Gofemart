@@ -2,8 +2,10 @@ package user
 
 import (
 	"context"
+	"errors"
 	"gofemart/internal/model"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -42,13 +44,17 @@ func (p *Repository) FindByOrder(order string) (*model.Withdraw, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	data := &model.Withdraw{}
-	err = conn.QueryRow(context.Background(), "select * from withdrawals where order_mumber=$1", order).Scan(&data)
-	if err != nil {
-		// Add error
+	rows, err := conn.Query(context.Background(), "select * from withdrawals where order_mumber=$1", order)
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no number in db")
+	} else if err != nil {
 		return nil, err
 	}
-	return data, nil
+	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Withdraw])
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
 }
 
 func (p *Repository) FindByUserId(id int) (*[]model.Withdraw, error) {
@@ -58,13 +64,17 @@ func (p *Repository) FindByUserId(id int) (*[]model.Withdraw, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	data := &[]model.Withdraw{}
-	err = conn.QueryRow(context.Background(), "select * from withdrawals where user_id=$1", id).Scan(&data)
-	if err != nil {
-		// Add error
+	rows, err := conn.Query(context.Background(), "select * from withdrawals where user_id=$1", id)
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no user_id in db")
+	} else if err != nil {
 		return nil, err
 	}
-	return data, nil
+	data, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Withdraw])
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
 }
 
 func (p *Repository) Migrate() error {
