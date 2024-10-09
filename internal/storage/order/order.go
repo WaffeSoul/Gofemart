@@ -50,7 +50,9 @@ func (p *Repository) FindByUserId(id int) (*[]model.Order, error) {
 		return nil, err
 	}
 	data, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Order])
-	if err != nil {
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no user_id in db")
+	} else if err != nil {
 		return nil, err
 	}
 	return &data, nil
@@ -69,7 +71,9 @@ func (p *Repository) FindByNumber(number string) (*model.Order, error) {
 		return nil, err
 	}
 	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Order])
-	if err != nil {
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no number in db")
+	} else if err != nil {
 		return nil, err
 	}
 	return &data, nil

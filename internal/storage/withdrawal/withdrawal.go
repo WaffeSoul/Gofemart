@@ -51,7 +51,9 @@ func (p *Repository) FindByOrder(order string) (*model.Withdraw, error) {
 		return nil, err
 	}
 	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Withdraw])
-	if err != nil {
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no user_id in db")
+	} else if err != nil {
 		return nil, err
 	}
 	return &data, nil
@@ -71,7 +73,9 @@ func (p *Repository) FindByUserId(id int) (*[]model.Withdraw, error) {
 		return nil, err
 	}
 	data, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Withdraw])
-	if err != nil {
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no user_id in db")
+	} else if err != nil {
 		return nil, err
 	}
 	return &data, nil
