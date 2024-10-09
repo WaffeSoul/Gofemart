@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	url = "http://localhost:8080"
+	UrlAccrual string
 )
 
 func CheckOrder(order string) (*model.Accrual, error) {
-	resp, err := http.Get(url + "/api/orders/" + order)
+	resp, err := http.Get(UrlAccrual + "/api/orders/" + order)
 	if err != nil {
 		return nil, err
 	}
