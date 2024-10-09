@@ -7,13 +7,13 @@ type Order struct {
 }
 
 type OrderWithAccrual struct {
-	Status     string `json:"status"`
-	Number     string `json:"number"`
-	UploadedAt string `json:"uploaded_at"`
-	Accrual    int    `json:"accrual"`
+	Status     string  `json:"status"`
+	Number     string  `json:"number"`
+	UploadedAt string  `json:"uploaded_at"`
+	Accrual    float64 `json:"accrual"`
 }
 
-func OrderToOrderWithAccrual(order Order, accrual int, status string) OrderWithAccrual {
+func OrderToOrderWithAccrual(order Order, accrual float64, status string) OrderWithAccrual {
 	switch status {
 	case "REGISTERED":
 		status = "NEW"
@@ -33,7 +33,7 @@ func OrderToOrderWithAccrual(order Order, accrual int, status string) OrderWithA
 }
 
 type Accrual struct {
-	Order   string `json:"order"`
-	Status  string `json:"status"`
-	Accrual int    `json:"accrual"`
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float64 `json:"accrual"`
 }
