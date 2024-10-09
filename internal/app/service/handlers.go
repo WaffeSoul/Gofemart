@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"gofemart/internal/accrual"
 	"gofemart/internal/luhn"
 	"gofemart/internal/model"
@@ -27,6 +28,7 @@ func (s *Service) SetOrder() http.Handler {
 		userId := r.Context().Value("userId").(int)
 		check, err := s.store.Orders().FindByNumber(number)
 		if err != nil {
+			fmt.Println(err.Error())
 			switch err.Error() {
 			case "no number in db":
 				break
@@ -51,6 +53,7 @@ func (s *Service) SetOrder() http.Handler {
 				w.WriteHeader(http.StatusUnprocessableEntity)
 				return
 			default:
+				fmt.Println("test")
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -62,6 +65,7 @@ func (s *Service) SetOrder() http.Handler {
 		}
 		err = s.store.Orders().Create(&order)
 		if err != nil {
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -103,7 +107,7 @@ func (s *Service) GetOrders() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		
+
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResp)
 	})

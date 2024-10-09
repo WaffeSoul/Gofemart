@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"gofemart/internal/model"
@@ -15,10 +16,13 @@ var (
 )
 
 func CheckOrder(order string) (*model.Accrual, error) {
-	resp, err := http.Get(UrlAccrual + "/api/orders/" + order)
+	path_url, err := url.JoinPath(UrlAccrual, "/api/orders/", order)
+	fmt.Println(path_url)
+	resp, err := http.Get(path_url)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(resp.StatusCode)
 	switch resp.StatusCode {
 	case 200:
 		accrual := &model.Accrual{}
