@@ -145,7 +145,7 @@ func (s *Service) GetBalance() http.Handler {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			res.Current += ac.Accrual
+			res.Current += float64(ac.Accrual)
 		}
 		withdraws, err := s.store.Withdrawals().FindByUserId(userId)
 		if err != nil {
@@ -204,16 +204,16 @@ func (s *Service) Withdraw() http.Handler {
 				return
 			}
 		}
-		current := 0
+		current := 0.0
 		for _, order := range *orders {
 			ac, err := accrual.CheckOrder(order.Number)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			current += ac.Accrual
+			current += float64(ac.Accrual)
 		}
-		draw := 0
+		draw := 0.0
 		withdraws, err := s.store.Withdrawals().FindByUserId(userId)
 		if err != nil {
 			switch err.Error() {
