@@ -90,7 +90,7 @@ func (p *Repository) Migrate() error {
 	defer conn.Release()
 	_, err = conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS withdrawals(
 		order_mumber VARCHAR(255) PRIMARY KEY,
-		user_id INTEGER REFERENCES users(id),
+		user_id INTEGER,
 		sum INTEGER,
 		processed_at DATE
 	);`)
