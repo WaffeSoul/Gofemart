@@ -44,7 +44,7 @@ func (p *Repository) FindByOrder(order string) (*model.Withdraw, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	rows, err := conn.Query(context.Background(), "select * from withdrawals where order_mumber=$1", order)
+	rows, err := conn.Query(context.Background(), "select * from withdrawals where order_number=$1", order)
 	if err == pgx.ErrNoRows {
 		return nil, errors.New("no number in db")
 	} else if err != nil {
@@ -89,7 +89,7 @@ func (p *Repository) Migrate() error {
 	}
 	defer conn.Release()
 	_, err = conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS withdrawals(
-		order_mumber VARCHAR(255) PRIMARY KEY,
+		order_number VARCHAR(255) PRIMARY KEY,
 		user_id INTEGER,
 		sum double precision,
 		processed_at VARCHAR(255)

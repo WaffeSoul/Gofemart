@@ -345,6 +345,7 @@ func (s *Service) Withdrawals() http.Handler {
 				w.WriteHeader(http.StatusNoContent)
 				return
 			default:
+				fmt.Println(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -357,6 +358,7 @@ func (s *Service) Withdrawals() http.Handler {
 		})
 		jsonResp, err := json.Marshal(resSort)
 		if err != nil {
+			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
