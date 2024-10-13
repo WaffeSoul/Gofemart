@@ -103,7 +103,7 @@ func (p *Repository) Migrate() error {
 		user_id INTEGER,
 		status  VARCHAR(16),
 		accrual double precision,
-		uploaded_at DATE
+		uploaded_at VARCHAR(255)
 	);`)
 	return err
 }

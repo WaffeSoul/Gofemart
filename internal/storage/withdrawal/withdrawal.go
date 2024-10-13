@@ -92,7 +92,7 @@ func (p *Repository) Migrate() error {
 		order_mumber VARCHAR(255) PRIMARY KEY,
 		user_id INTEGER,
 		sum INTEGER,
-		processed_at DATE
+		processed_at VARCHAR(255)
 	);`)
 	if err != nil {
 		// Add error
