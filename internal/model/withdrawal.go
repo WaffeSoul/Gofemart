@@ -2,7 +2,7 @@ package model
 
 type Withdraw struct {
 	OrderNumber string  `json:"order"`
-	UserId      int     `json:"user_id"`
+	UserID      int     `json:"user_id"`
 	Sum         float64 `json:"sum"`
 	ProcessedAt string  `json:"processed_at"`
 }

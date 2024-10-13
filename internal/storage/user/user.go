@@ -51,7 +51,7 @@ func (p *Repository) FindByName(name string) (*model.User, error) {
 	return &data, nil
 }
 
-func (p *Repository) FindById(id int) (*model.User, error) {
+func (p *Repository) FindByID(id int) (*model.User, error) {
 	conn, err := p.db.Acquire(context.Background())
 	if err != nil {
 		return nil, err

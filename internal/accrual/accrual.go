@@ -11,16 +11,17 @@ import (
 )
 
 var (
-	UrlAccrual string
+	URLAccrual string
 )
 
 func CheckOrder(order string) (*model.Accrual, error) {
-	path_url, _ := url.JoinPath(UrlAccrual, "/api/orders/", order)
+	pathURL, _ := url.JoinPath(URLAccrual, "/api/orders/", order)
 	for i := 0; i < 3; i++ {
-		resp, err := http.Get(path_url)
+		resp, err := http.Get(pathURL)
 		if err != nil {
 			return nil, err
 		}
+		defer resp.Body.Close()
 		switch resp.StatusCode {
 		case 200:
 			accrual := &model.Accrual{}

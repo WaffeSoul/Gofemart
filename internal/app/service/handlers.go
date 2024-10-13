@@ -26,7 +26,7 @@ func (s *Service) SetOrder() http.Handler {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		userId := r.Context().Value("userId").(int)
+		userID := r.Context().Value("UserID").(int)
 		check, err := s.store.Orders().FindByNumber(number)
 		if err != nil {
 			switch err.Error() {
@@ -39,7 +39,7 @@ func (s *Service) SetOrder() http.Handler {
 			}
 		}
 		if check != nil {
-			if check.UserId == userId {
+			if check.UserID == userID {
 				w.WriteHeader(http.StatusOK)
 				return
 			} else {
@@ -58,7 +58,7 @@ func (s *Service) SetOrder() http.Handler {
 		}
 		order := model.Order{
 			Number:     number,
-			UserId:     userId,
+			UserID:     userID,
 			UploadedAt: time.Now().Format("2006-01-02T15:04:05Z"),
 		}
 		order.AddAccrual(accrualCheck.Accrual, accrualCheck.Status)
@@ -75,8 +75,8 @@ func (s *Service) SetOrder() http.Handler {
 func (s *Service) GetOrders() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		userId := r.Context().Value("userId").(int)
-		orders, err := s.store.Orders().FindByUserId(userId)
+		userID := r.Context().Value("UserID").(int)
+		orders, err := s.store.Orders().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -146,8 +146,8 @@ func (s *Service) GetBalance() http.Handler {
 			Current:  0,
 			Withdraw: 0,
 		}
-		userId := r.Context().Value("userId").(int)
-		orders, err := s.store.Orders().FindByUserId(userId)
+		userID := r.Context().Value("UserID").(int)
+		orders, err := s.store.Orders().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -198,7 +198,7 @@ func (s *Service) GetBalance() http.Handler {
 			}
 
 		}
-		withdraws, err := s.store.Withdrawals().FindByUserId(userId)
+		withdraws, err := s.store.Withdrawals().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -241,12 +241,12 @@ func (s *Service) Withdraw() http.Handler {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		userId := r.Context().Value("userId").(int)
+		userID := r.Context().Value("UserID").(int)
 		if !luhn.LuhnAlgorithm(resJSON.OrderNumber) {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		orders, err := s.store.Orders().FindByUserId(userId)
+		orders, err := s.store.Orders().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -293,7 +293,7 @@ func (s *Service) Withdraw() http.Handler {
 
 		}
 		draw := 0.0
-		withdraws, err := s.store.Withdrawals().FindByUserId(userId)
+		withdraws, err := s.store.Withdrawals().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -314,7 +314,7 @@ func (s *Service) Withdraw() http.Handler {
 		}
 		withdraw := model.Withdraw{
 			OrderNumber: resJSON.OrderNumber,
-			UserId:      userId,
+			UserID:      userID,
 			Sum:         resJSON.Sum,
 			ProcessedAt: time.Now().Format("2006-01-02T15:04:05Z"),
 		}
@@ -331,9 +331,9 @@ func (s *Service) Withdraw() http.Handler {
 func (s *Service) Withdrawals() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		userId := r.Context().Value("userId").(int)
+		userID := r.Context().Value("UserID").(int)
 
-		res, err := s.store.Withdrawals().FindByUserId(userId)
+		res, err := s.store.Withdrawals().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":

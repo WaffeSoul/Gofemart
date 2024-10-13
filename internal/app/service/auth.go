@@ -36,7 +36,8 @@ func (s *Service) SignUp() http.Handler {
 		userReq.Password = hashedPassword
 		err = s.store.Users().Create(&userReq)
 		if err != nil {
-
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		accessToken, refreshToken, err := s.JwtManager.GenerateTokens(context.Background(), userReq.Id, s.store)
 		if err != nil {

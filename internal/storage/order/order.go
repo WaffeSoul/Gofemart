@@ -28,7 +28,7 @@ func (p *Repository) Create(order *model.Order) error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `insert into orders(number, user_id, status,accrual, uploaded_at) values ($1, $2, $3,$4, $5)`, order.Number, order.UserId, order.Status, order.Accrual, order.UploadedAt)
+	_, err = conn.Exec(context.Background(), `insert into orders(number, user_id, status,accrual, uploaded_at) values ($1, $2, $3,$4, $5)`, order.Number, order.UserID, order.Status, order.Accrual, order.UploadedAt)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (p *Repository) Update(order *model.Order) error {
 	return err
 }
 
-func (p *Repository) FindByUserId(id int) (*[]model.Order, error) {
+func (p *Repository) FindByUserID(id int) (*[]model.Order, error) {
 	conn, err := p.db.Acquire(context.Background())
 	if err != nil {
 		return nil, err

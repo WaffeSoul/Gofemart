@@ -29,7 +29,7 @@ func (p *Repository) Create(draw *model.Withdraw) error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `insert into withdrawals(user_id, order_number,sum,processed_at) values ($1, $2,$3, $4)`, draw.UserId, draw.OrderNumber, draw.Sum, draw.ProcessedAt)
+	_, err = conn.Exec(context.Background(), `insert into withdrawals(user_id, order_number,sum,processed_at) values ($1, $2,$3, $4)`, draw.UserID, draw.OrderNumber, draw.Sum, draw.ProcessedAt)
 	if err != nil {
 		// Add error
 		return err
@@ -59,7 +59,7 @@ func (p *Repository) FindByOrder(order string) (*model.Withdraw, error) {
 	return &data, nil
 }
 
-func (p *Repository) FindByUserId(id int) (*[]model.Withdraw, error) {
+func (p *Repository) FindByUserID(id int) (*[]model.Withdraw, error) {
 	conn, err := p.db.Acquire(context.Background())
 	if err != nil {
 		// Add error

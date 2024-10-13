@@ -30,8 +30,8 @@ func JWTInterceptor(jwtM *jwt.JWTManager, next http.Handler) http.Handler {
 			return
 		}
 
-		userId := userClaims.UserID
-		ctx := context.WithValue(r.Context(), "userId", userId)
+		userID := userClaims.UserID
+		ctx := context.WithValue(r.Context(), "UserID", userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
