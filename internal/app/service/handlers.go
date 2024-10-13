@@ -26,7 +26,7 @@ func (s *Service) SetOrder() http.Handler {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		userID := r.Context().Value("UserID").(int)
+		userID := r.Context().Value(model.UserIDKey).(int)
 		check, err := s.store.Orders().FindByNumber(number)
 		if err != nil {
 			switch err.Error() {
@@ -75,7 +75,7 @@ func (s *Service) SetOrder() http.Handler {
 func (s *Service) GetOrders() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		userID := r.Context().Value("UserID").(int)
+		userID := r.Context().Value(model.UserIDKey).(int)
 		orders, err := s.store.Orders().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
@@ -146,7 +146,7 @@ func (s *Service) GetBalance() http.Handler {
 			Current:  0,
 			Withdraw: 0,
 		}
-		userID := r.Context().Value("UserID").(int)
+		userID := r.Context().Value(model.UserIDKey).(int)
 		orders, err := s.store.Orders().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
@@ -241,7 +241,7 @@ func (s *Service) Withdraw() http.Handler {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		userID := r.Context().Value("UserID").(int)
+		userID := r.Context().Value(model.UserIDKey).(int)
 		if !luhn.LuhnAlgorithm(resJSON.OrderNumber) {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
@@ -331,7 +331,7 @@ func (s *Service) Withdraw() http.Handler {
 func (s *Service) Withdrawals() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		userID := r.Context().Value("UserID").(int)
+		userID := r.Context().Value(model.UserIDKey).(int)
 
 		res, err := s.store.Withdrawals().FindByUserID(userID)
 		if err != nil {
