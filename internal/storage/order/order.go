@@ -30,7 +30,7 @@ func (p *Repository) Create(order *model.Order) error {
 	}
 	defer conn.Release()
 	date := time.Now()
-	_, err = conn.Exec(context.Background(), `insert into orders(number, user_id, status,accrual, uploaded_at,) values ($1, $2, $3,$4, $5)`, order.Number, order.UserId, order.Status, order.Accrual, date)
+	_, err = conn.Exec(context.Background(), `insert into orders(number, user_id, status,accrual, uploaded_at) values ($1, $2, $3,$4, $5)`, order.Number, order.UserId, order.Status, order.Accrual, date)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (p *Repository) Migrate() error {
 	_, err = conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS orders(
 		number VARCHAR(255)  PRIMARY KEY,
 		user_id INTEGER,
-		status  VARCHAR(255),
+		status  VARCHAR(16),
 		accrual double precision,
 		uploaded_at DATE
 	);`)
