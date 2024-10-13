@@ -79,6 +79,7 @@ func (s *Service) GetOrders() http.Handler {
 		orders, err := s.store.Orders().FindByUserId(userId)
 		fmt.Println(orders)
 		if err != nil {
+			fmt.Println(err.Error())
 			switch err.Error() {
 			case "no user_id in db":
 				w.WriteHeader(http.StatusNoContent)
@@ -103,6 +104,7 @@ func (s *Service) GetOrders() http.Handler {
 					res = append(res, order)
 					err = s.store.Orders().Update(&order)
 					if err != nil {
+						fmt.Println(err.Error())
 						w.WriteHeader(http.StatusInternalServerError)
 						return
 					}
@@ -110,6 +112,7 @@ func (s *Service) GetOrders() http.Handler {
 					order.AddAccrual(0, ac.Status)
 					err = s.store.Orders().Update(&order)
 					if err != nil {
+						fmt.Println(err.Error())
 						w.WriteHeader(http.StatusInternalServerError)
 						return
 					}
@@ -119,6 +122,7 @@ func (s *Service) GetOrders() http.Handler {
 			case "PROCESSED":
 				res = append(res, order)
 			default:
+				fmt.Println(order.Status)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
