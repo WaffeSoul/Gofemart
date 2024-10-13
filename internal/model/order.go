@@ -3,9 +3,9 @@ package model
 type Order struct {
 	Number     string  `json:"number"`
 	UserId     int     `json:"user_id"`
-	UploadedAt string  `json:"uploaded_at"`
-	Accrual    float64 `json:"accrual"`
 	Status     string  `json:"status"`
+	Accrual    float64 `json:"accrual"`
+	UploadedAt string  `json:"uploaded_at"`
 }
 
 func (o *Order) AddAccrual(accrual float64, status string) {
