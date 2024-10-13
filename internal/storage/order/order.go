@@ -30,7 +30,7 @@ func (p *Repository) Create(order *model.Order) error {
 	}
 	defer conn.Release()
 	date := time.Now()
-	_, err = conn.Exec(context.Background(), `insert into orders(number, user_id, uploaded_at,status,accrual) values ($1, $2, $3)`, order.Number, order.UserId, date, order.Status, order.Accrual)
+	_, err = conn.Exec(context.Background(), `insert into orders(number, user_id, uploaded_at,status,accrual) values ($1, $2, $3,$4, $5)`, order.Number, order.UserId, date, order.Status, order.Accrual)
 	if err != nil {
 		return err
 	}
