@@ -29,7 +29,7 @@ func (p *Repository) Create(draw *model.Withdraw) error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `insert into withdrawals(user_id, order_mumber,sum,processed_at) values ($1, $2)`, draw.UserId, draw.Order, draw.Sum, draw.ProcessedAt)
+	_, err = conn.Exec(context.Background(), `insert into withdrawals(user_id, order_mumber,sum,processed_at) values ($1, $2,$3, $4)`, draw.UserId, draw.Order, draw.Sum, draw.ProcessedAt)
 	if err != nil {
 		// Add error
 		return err
@@ -91,7 +91,7 @@ func (p *Repository) Migrate() error {
 	_, err = conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS withdrawals(
 		order_mumber VARCHAR(255) PRIMARY KEY,
 		user_id INTEGER,
-		sum INTEGER,
+		sum double precision,
 		processed_at VARCHAR(255)
 	);`)
 	if err != nil {
