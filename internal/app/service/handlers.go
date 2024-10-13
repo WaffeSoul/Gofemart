@@ -240,7 +240,7 @@ func (s *Service) Withdraw() http.Handler {
 			return
 		}
 		userId := r.Context().Value("userId").(int)
-		if !luhn.LuhnAlgorithm(resJSON.Order) {
+		if !luhn.LuhnAlgorithm(resJSON.OrderNumber) {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
@@ -317,7 +317,7 @@ func (s *Service) Withdraw() http.Handler {
 			return
 		}
 		withdraw := model.Withdraw{
-			Order:       resJSON.Order,
+			OrderNumber: resJSON.OrderNumber,
 			UserId:      userId,
 			Sum:         resJSON.Sum,
 			ProcessedAt: time.Now().Format("2006-01-02T15:04:05Z"),

@@ -29,7 +29,7 @@ func (p *Repository) Create(draw *model.Withdraw) error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `insert into withdrawals(user_id, order_number,sum,processed_at) values ($1, $2,$3, $4)`, draw.UserId, draw.Order, draw.Sum, draw.ProcessedAt)
+	_, err = conn.Exec(context.Background(), `insert into withdrawals(user_id, order_number,sum,processed_at) values ($1, $2,$3, $4)`, draw.UserId, draw.OrderNumber, draw.Sum, draw.ProcessedAt)
 	if err != nil {
 		// Add error
 		return err
