@@ -13,8 +13,9 @@ type UserRepository interface {
 type OrderRepository interface {
 	FindByNumber(number string) (*model.Order, error)
 	FindByUserId(id int) (*[]model.Order, error)
-	Create(user *model.Order) error
+	Create(order *model.Order) error
 	Delete(name string) error
+	Update(order *model.Order) error
 	Migrate() error
 }
 

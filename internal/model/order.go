@@ -1,19 +1,14 @@
 package model
 
 type Order struct {
-	Number     string `json:"number"`
-	UserId     int    `json:"user_id"`
-	UploadedAt string `json:"uploaded_at"`
-}
-
-type OrderWithAccrual struct {
-	Status     string  `json:"status"`
 	Number     string  `json:"number"`
+	UserId     int     `json:"user_id"`
 	UploadedAt string  `json:"uploaded_at"`
 	Accrual    float64 `json:"accrual"`
+	Status     string  `json:"status"`
 }
 
-func OrderToOrderWithAccrual(order Order, accrual float64, status string) OrderWithAccrual {
+func (o *Order) AddAccrual(accrual float64, status string) {
 	switch status {
 	case "REGISTERED":
 		status = "NEW"
@@ -24,12 +19,8 @@ func OrderToOrderWithAccrual(order Order, accrual float64, status string) OrderW
 	case "PROCESSED":
 		status = "PROCESSED"
 	}
-	return OrderWithAccrual{
-		Status:     status,
-		Number:     order.Number,
-		UploadedAt: order.UploadedAt,
-		Accrual:    accrual,
-	}
+	o.Status = status
+	o.Accrual = accrual
 }
 
 type Accrual struct {

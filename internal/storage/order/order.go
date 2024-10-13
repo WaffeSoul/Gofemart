@@ -37,6 +37,19 @@ func (p *Repository) Create(order *model.Order) error {
 	return err
 }
 
+func (p *Repository) Update(order *model.Order) error {
+	conn, err := p.db.Acquire(context.Background())
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+	_, err = conn.Exec(context.Background(), `"UPDATE orders SET status = $1, accrual = $2 WHERE number = $3")`, order.Status, order.Accrual, order.Number)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 func (p *Repository) FindByUserId(id int) (*[]model.Order, error) {
 	conn, err := p.db.Acquire(context.Background())
 	if err != nil {
@@ -88,6 +101,8 @@ func (p *Repository) Migrate() error {
 	_, err = conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS orders(
 		number VARCHAR(255)  PRIMARY KEY,
 		user_id INTEGER,
+		status  VARCHAR(255),
+		accrual double precision,
 		uploaded_at DATE
 	);`)
 	return err
