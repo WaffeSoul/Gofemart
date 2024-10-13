@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"gofemart/internal/model"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -29,8 +28,7 @@ func (p *Repository) Create(order *model.Order) error {
 		return err
 	}
 	defer conn.Release()
-	date := time.Now()
-	_, err = conn.Exec(context.Background(), `insert into orders(number, user_id, status,accrual, uploaded_at) values ($1, $2, $3,$4, $5)`, order.Number, order.UserId, order.Status, order.Accrual, date)
+	_, err = conn.Exec(context.Background(), `insert into orders(number, user_id, status,accrual, uploaded_at) values ($1, $2, $3,$4, $5)`, order.Number, order.UserId, order.Status, order.Accrual, order.UploadedAt)
 	if err != nil {
 		return err
 	}
