@@ -68,6 +68,7 @@ func (s *Service) SetOrder() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		fmt.Println(order)
 		w.WriteHeader(http.StatusAccepted)
 	})
 }

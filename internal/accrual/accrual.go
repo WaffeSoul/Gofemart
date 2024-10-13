@@ -33,6 +33,7 @@ func CheckOrder(order string) (*model.Accrual, error) {
 				fmt.Println(err.Error())
 				return nil, err
 			}
+			fmt.Println(accrual)
 			return accrual, nil
 		case 204:
 			return nil, errors.New("the order is not registered in the payment system")
@@ -40,7 +41,7 @@ func CheckOrder(order string) (*model.Accrual, error) {
 			fmt.Println("too many requests")
 			time.Sleep(time.Second * 5 * time.Duration(i+1))
 			continue
-			return nil, errors.New("too many requests")
+			// return nil, errors.New("too many requests")
 		case 500:
 			return nil, errors.New("internal server error")
 		default:

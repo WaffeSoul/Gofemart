@@ -23,7 +23,7 @@ func (s *Service) SignUp() http.Handler {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		user, err := s.store.Users().FindByName(userReq.Username)
+		user, _ := s.store.Users().FindByName(userReq.Username)
 		if user != nil {
 			w.WriteHeader(http.StatusConflict)
 			return
