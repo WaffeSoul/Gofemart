@@ -21,10 +21,10 @@ func (s *Service) SetOrder() http.Handler {
 			return
 		}
 		number := string(orderNumber)
-		if !luhn.LuhnAlgorithm(number) {
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			return
-		}
+		// if !luhn.LuhnAlgorithm(number) {
+		// 	w.WriteHeader(http.StatusUnprocessableEntity)
+		// 	return
+		// }
 		userId := r.Context().Value("userId").(int)
 		check, err := s.store.Orders().FindByNumber(number)
 		if err != nil {
