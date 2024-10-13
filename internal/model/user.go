@@ -3,7 +3,7 @@ package model
 import "github.com/golang-jwt/jwt/v5"
 
 type User struct {
-	Id       int    `json:"-"`
+	ID       int    `json:"-"`
 	Username string `json:"login"`
 	Password string `json:"password"`
 }
@@ -21,5 +21,5 @@ type Balance struct {
 type UserKey int
 
 const (
-    UserIDKey UserKey = iota
+	UserIDKey UserKey = iota
 )
