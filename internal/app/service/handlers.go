@@ -33,6 +33,7 @@ func (s *Service) SetOrder() http.Handler {
 			case "no number in db":
 				break
 			default:
+				fmt.Println(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -50,6 +51,7 @@ func (s *Service) SetOrder() http.Handler {
 		if err != nil {
 			switch err.Error() {
 			default:
+				fmt.Println(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -62,6 +64,7 @@ func (s *Service) SetOrder() http.Handler {
 		order.AddAccrual(accrualCheck.Accrual, accrualCheck.Status)
 		err = s.store.Orders().Create(&order)
 		if err != nil {
+			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -218,7 +221,6 @@ func (s *Service) GetBalance() http.Handler {
 		res.Current -= res.Withdraw
 		res.Current = math.Round(res.Current*100) / 100
 		res.Withdraw = math.Round(res.Withdraw*100) / 100
-		fmt.Println(res)
 		jsonResp, err := json.Marshal(res)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -251,7 +253,6 @@ func (s *Service) Withdraw() http.Handler {
 				w.WriteHeader(http.StatusPaymentRequired)
 				return
 			default:
-				fmt.Println(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -262,7 +263,6 @@ func (s *Service) Withdraw() http.Handler {
 			case "PROCESSING", "NEW":
 				ac, err := accrual.CheckOrder(order.Number)
 				if err != nil {
-					fmt.Println(err.Error())
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
@@ -271,7 +271,6 @@ func (s *Service) Withdraw() http.Handler {
 					current += float64(ac.Accrual)
 					err = s.store.Orders().Update(&order)
 					if err != nil {
-						fmt.Println(err.Error())
 						w.WriteHeader(http.StatusInternalServerError)
 						return
 					}
@@ -279,7 +278,6 @@ func (s *Service) Withdraw() http.Handler {
 					order.AddAccrual(0, ac.Status)
 					err = s.store.Orders().Update(&order)
 					if err != nil {
-						fmt.Println(err.Error())
 						w.WriteHeader(http.StatusInternalServerError)
 						return
 					}
@@ -289,7 +287,6 @@ func (s *Service) Withdraw() http.Handler {
 			case "PROCESSED":
 				current += float64(order.Accrual)
 			default:
-				fmt.Println("error status")
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -303,7 +300,6 @@ func (s *Service) Withdraw() http.Handler {
 
 				return
 			default:
-				fmt.Println(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -324,7 +320,6 @@ func (s *Service) Withdraw() http.Handler {
 		}
 		err = s.store.Withdrawals().Create(&withdraw)
 		if err != nil {
-			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -345,7 +340,6 @@ func (s *Service) Withdrawals() http.Handler {
 				w.WriteHeader(http.StatusNoContent)
 				return
 			default:
-				fmt.Println(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -358,7 +352,6 @@ func (s *Service) Withdrawals() http.Handler {
 		})
 		jsonResp, err := json.Marshal(resSort)
 		if err != nil {
-			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
