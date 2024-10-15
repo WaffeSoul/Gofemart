@@ -2,10 +2,10 @@ package service
 
 import (
 	"encoding/json"
-	"gofemart/internal/accrual"
 	"gofemart/internal/luhn"
 	"gofemart/internal/model"
 	"io"
+	"math"
 	"net/http"
 	"sort"
 	"time"
@@ -24,7 +24,7 @@ func (s *Service) SetOrder() http.Handler {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		userId := r.Context().Value("userId").(int)
+		userID := r.Context().Value(model.UserIDKey).(int)
 		check, err := s.store.Orders().FindByNumber(number)
 		if err != nil {
 			switch err.Error() {
@@ -36,7 +36,7 @@ func (s *Service) SetOrder() http.Handler {
 			}
 		}
 		if check != nil {
-			if check.UserId == userId {
+			if check.UserID == userID {
 				w.WriteHeader(http.StatusOK)
 				return
 			} else {
@@ -44,12 +44,9 @@ func (s *Service) SetOrder() http.Handler {
 				return
 			}
 		}
-		_, err = accrual.CheckOrder(string(orderNumber))
+		accrualCheck, err := s.accrual.CheckOrder(string(orderNumber))
 		if err != nil {
 			switch err.Error() {
-			case "the order is not registered in the payment system":
-				w.WriteHeader(http.StatusUnprocessableEntity)
-				return
 			default:
 				w.WriteHeader(http.StatusInternalServerError)
 				return
@@ -57,9 +54,10 @@ func (s *Service) SetOrder() http.Handler {
 		}
 		order := model.Order{
 			Number:     number,
-			UserId:     userId,
+			UserID:     userID,
 			UploadedAt: time.Now().Format("2006-01-02T15:04:05Z"),
 		}
+		order.AddAccrual(accrualCheck.Accrual, accrualCheck.Status)
 		err = s.store.Orders().Create(&order)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -71,8 +69,9 @@ func (s *Service) SetOrder() http.Handler {
 
 func (s *Service) GetOrders() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("userId").(int)
-		orders, err := s.store.Orders().FindByUserId(userId)
+		w.Header().Add("Content-Type", "application/json")
+		userID := r.Context().Value(model.UserIDKey).(int)
+		orders, err := s.store.Orders().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -83,14 +82,40 @@ func (s *Service) GetOrders() http.Handler {
 				return
 			}
 		}
-		var res []model.OrderWithAccrual
+		var res []model.Order
 		for _, order := range *orders {
-			ac, err := accrual.CheckOrder(order.Number)
-			if err != nil {
+			switch order.Status {
+			case "PROCESSING", "NEW":
+				ac, err := s.accrual.CheckOrder(order.Number)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				if ac.Status == "PROCESSED" {
+					order.AddAccrual(ac.Accrual, ac.Status)
+					res = append(res, order)
+					err = s.store.Orders().Update(&order)
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+				} else if ac.Status == "INVALID" {
+					order.AddAccrual(0, ac.Status)
+					err = s.store.Orders().Update(&order)
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+				}
+			case "INVALID":
+				continue
+			case "PROCESSED":
+				res = append(res, order)
+			default:
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			res = append(res, model.OrderToOrderWithAccrual(order, ac.Accrual, ac.Status))
+
 		}
 		sort.Slice(res, func(i, j int) bool {
 			dateI, _ := time.Parse("2006-01-02T15:04:05Z", res[i].UploadedAt)
@@ -102,6 +127,7 @@ func (s *Service) GetOrders() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResp)
 	})
@@ -110,12 +136,13 @@ func (s *Service) GetOrders() http.Handler {
 
 func (s *Service) GetBalance() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
 		res := model.Balance{
 			Current:  0,
 			Withdraw: 0,
 		}
-		userId := r.Context().Value("userId").(int)
-		orders, err := s.store.Orders().FindByUserId(userId)
+		userID := r.Context().Value(model.UserIDKey).(int)
+		orders, err := s.store.Orders().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -133,14 +160,40 @@ func (s *Service) GetBalance() http.Handler {
 			}
 		}
 		for _, order := range *orders {
-			ac, err := accrual.CheckOrder(order.Number)
-			if err != nil {
+			switch order.Status {
+			case "PROCESSING", "NEW":
+				ac, err := s.accrual.CheckOrder(order.Number)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				if ac.Status == "PROCESSED" {
+					order.AddAccrual(ac.Accrual, ac.Status)
+					res.Current += float64(ac.Accrual)
+					err = s.store.Orders().Update(&order)
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+				} else if ac.Status == "INVALID" {
+					order.AddAccrual(0, ac.Status)
+					err = s.store.Orders().Update(&order)
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+				}
+			case "INVALID":
+				continue
+			case "PROCESSED":
+				res.Current += float64(order.Accrual)
+			default:
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			res.Current += ac.Accrual
+
 		}
-		withdraws, err := s.store.Withdrawals().FindByUserId(userId)
+		withdraws, err := s.store.Withdrawals().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -161,6 +214,8 @@ func (s *Service) GetBalance() http.Handler {
 			res.Withdraw += withdraw.Sum
 		}
 		res.Current -= res.Withdraw
+		res.Current = math.Round(res.Current*100) / 100
+		res.Withdraw = math.Round(res.Withdraw*100) / 100
 		jsonResp, err := json.Marshal(res)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -174,18 +229,19 @@ func (s *Service) GetBalance() http.Handler {
 func (s *Service) Withdraw() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var resJSON model.ReqWithdraw
+		w.Header().Add("Content-Type", "application/json")
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&resJSON)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		userId := r.Context().Value("userId").(int)
-		if !luhn.LuhnAlgorithm(resJSON.Order) {
+		userID := r.Context().Value(model.UserIDKey).(int)
+		if !luhn.LuhnAlgorithm(resJSON.OrderNumber) {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		orders, err := s.store.Orders().FindByUserId(userId)
+		orders, err := s.store.Orders().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -196,17 +252,43 @@ func (s *Service) Withdraw() http.Handler {
 				return
 			}
 		}
-		current := 0
+		current := 0.0
 		for _, order := range *orders {
-			ac, err := accrual.CheckOrder(order.Number)
-			if err != nil {
+			switch order.Status {
+			case "PROCESSING", "NEW":
+				ac, err := s.accrual.CheckOrder(order.Number)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				if ac.Status == "PROCESSED" {
+					order.AddAccrual(ac.Accrual, ac.Status)
+					current += float64(ac.Accrual)
+					err = s.store.Orders().Update(&order)
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+				} else if ac.Status == "INVALID" {
+					order.AddAccrual(0, ac.Status)
+					err = s.store.Orders().Update(&order)
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+				}
+			case "INVALID":
+				continue
+			case "PROCESSED":
+				current += float64(order.Accrual)
+			default:
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			current += ac.Accrual
+
 		}
-		draw := 0
-		withdraws, err := s.store.Withdrawals().FindByUserId(userId)
+		draw := 0.0
+		withdraws, err := s.store.Withdrawals().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
@@ -226,8 +308,8 @@ func (s *Service) Withdraw() http.Handler {
 			return
 		}
 		withdraw := model.Withdraw{
-			Order:       resJSON.Order,
-			UserId:      userId,
+			OrderNumber: resJSON.OrderNumber,
+			UserID:      userID,
 			Sum:         resJSON.Sum,
 			ProcessedAt: time.Now().Format("2006-01-02T15:04:05Z"),
 		}
@@ -243,9 +325,10 @@ func (s *Service) Withdraw() http.Handler {
 
 func (s *Service) Withdrawals() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Context().Value("userId").(int)
+		w.Header().Add("Content-Type", "application/json")
+		userID := r.Context().Value(model.UserIDKey).(int)
 
-		res, err := s.store.Withdrawals().FindByUserId(userId)
+		res, err := s.store.Withdrawals().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
