@@ -20,12 +20,11 @@ type Database struct {
 func InitDB(addr string) *pgxpool.Pool {
 	poolConfig, err := pgxpool.ParseConfig(addr)
 	if err != nil {
-		return nil
-		// log.Fatalln("Unable to parse DATABASE_URL:", err)
+		panic("parse config db")
 	}
 	conn, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
-		return nil
+		panic("failed to initialize db")
 	}
 	return conn
 }

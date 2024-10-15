@@ -2,8 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
-	"gofemart/internal/accrual"
 	"gofemart/internal/luhn"
 	"gofemart/internal/model"
 	"io"
@@ -33,7 +31,6 @@ func (s *Service) SetOrder() http.Handler {
 			case "no number in db":
 				break
 			default:
-				fmt.Println(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -47,11 +44,10 @@ func (s *Service) SetOrder() http.Handler {
 				return
 			}
 		}
-		accrualCheck, err := accrual.CheckOrder(string(orderNumber))
+		accrualCheck, err := s.accrual.CheckOrder(string(orderNumber))
 		if err != nil {
 			switch err.Error() {
 			default:
-				fmt.Println(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -64,7 +60,6 @@ func (s *Service) SetOrder() http.Handler {
 		order.AddAccrual(accrualCheck.Accrual, accrualCheck.Status)
 		err = s.store.Orders().Create(&order)
 		if err != nil {
-			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -91,7 +86,7 @@ func (s *Service) GetOrders() http.Handler {
 		for _, order := range *orders {
 			switch order.Status {
 			case "PROCESSING", "NEW":
-				ac, err := accrual.CheckOrder(order.Number)
+				ac, err := s.accrual.CheckOrder(order.Number)
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
 					return
@@ -167,7 +162,7 @@ func (s *Service) GetBalance() http.Handler {
 		for _, order := range *orders {
 			switch order.Status {
 			case "PROCESSING", "NEW":
-				ac, err := accrual.CheckOrder(order.Number)
+				ac, err := s.accrual.CheckOrder(order.Number)
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
 					return
@@ -261,7 +256,7 @@ func (s *Service) Withdraw() http.Handler {
 		for _, order := range *orders {
 			switch order.Status {
 			case "PROCESSING", "NEW":
-				ac, err := accrual.CheckOrder(order.Number)
+				ac, err := s.accrual.CheckOrder(order.Number)
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
 					return
