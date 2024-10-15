@@ -11,5 +11,5 @@ func Middleware(h http.Handler) http.Handler {
 }
 
 func MiddlewareWithJWT(jwtM *jwt.JWTManager, h http.Handler) http.Handler {
-	return logger.WithLogging(GzipMiddleware(h))
+	return logger.WithLogging(GzipMiddleware(JWTInterceptor(jwtM, h)))
 }
