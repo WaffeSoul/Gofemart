@@ -1,4 +1,4 @@
-package user
+package withdrawal
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func (p *Repository) Create(draw *model.Withdraw) error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `insert into withdrawals(user_id, order_number,sum,processed_at) values ($1, $2,$3, $4)`, draw.UserID, draw.OrderNumber, draw.Sum, draw.ProcessedAt)
+	_, err = conn.Exec(context.Background(), createSQL, draw.UserID, draw.OrderNumber, draw.Sum, draw.ProcessedAt)
 	if err != nil {
 		// Add error
 		return err
@@ -44,7 +44,7 @@ func (p *Repository) FindByOrder(order string) (*model.Withdraw, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	rows, err := conn.Query(context.Background(), "select * from withdrawals where order_number=$1", order)
+	rows, err := conn.Query(context.Background(), findByOrderSQL, order)
 	if err == pgx.ErrNoRows {
 		return nil, errors.New("no number in db")
 	} else if err != nil {
@@ -66,7 +66,7 @@ func (p *Repository) FindByUserID(id int) (*[]model.Withdraw, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	rows, err := conn.Query(context.Background(), "select * from withdrawals where user_id=$1", id)
+	rows, err := conn.Query(context.Background(), findByUserIDSQL, id)
 	if err == pgx.ErrNoRows {
 		return nil, errors.New("no user_id in db")
 	} else if err != nil {
@@ -88,12 +88,7 @@ func (p *Repository) Migrate() error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS withdrawals(
-		order_number VARCHAR(255) PRIMARY KEY,
-		user_id INTEGER,
-		sum double precision,
-		processed_at VARCHAR(255)
-	);`)
+	_, err = conn.Exec(context.Background(), migrateSQL)
 	if err != nil {
 		// Add error
 		return err

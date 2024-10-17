@@ -27,7 +27,7 @@ func (p *Repository) Create(user *model.User) error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `insert into users(username, password) values ($1, $2)`, user.Username, user.Password)
+	_, err = conn.Exec(context.Background(), createSQL, user.Username, user.Password)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (p *Repository) FindByName(name string) (*model.User, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	rows, err := conn.Query(context.Background(), "select * from users where username=$1", name)
+	rows, err := conn.Query(context.Background(), findByNameSQL, name)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (p *Repository) FindByID(id int) (*model.User, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	rows, err := conn.Query(context.Background(), "select * from users where id=$1", id)
+	rows, err := conn.Query(context.Background(), findByIDSQL, id)
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +74,7 @@ func (p *Repository) Migrate() error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS users (
-		id serial PRIMARY KEY,
-		username VARCHAR(255) UNIQUE,
-		password VARCHAR(255)
-);`)
+	_, err = conn.Exec(context.Background(), migrateSQL)
 	if err != nil {
 		return err
 	}
