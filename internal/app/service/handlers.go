@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"gofemart/internal/logger"
 	"gofemart/internal/luhn"
 	"gofemart/internal/model"
 	"io"
@@ -9,6 +10,8 @@ import (
 	"net/http"
 	"sort"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func (s *Service) SetOrder() http.Handler {
@@ -86,8 +89,9 @@ func (s *Service) GetOrders() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusOK)
+		logger.Info("check json", zap.String("data", string(jsonResp)))
 		w.Write(jsonResp)
+		w.WriteHeader(http.StatusOK)
 	})
 
 }
