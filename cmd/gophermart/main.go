@@ -16,16 +16,16 @@ func run() error {
 	logger.InitLogger(false)
 	conf := config.NewConfig()
 	store := storage.NewStore(conf)
-	acc := accrual.NewAccrual(conf)
+	acc := accrual.NewAccrual(conf, &store)
+	defer acc.Finish()
 	srv := service.NewService(store, acc)
 	mux := http.NewServeMux()
 	app.AddRoute(mux, srv)
-	return http.ListenAndServe(conf.Server, mux)
+	res := http.ListenAndServe(conf.Server, mux)
+	return res
 }
 
 func main() {
-	if err := run(); err != nil {
-		logger.Error("failed to run server", zap.Error(err))
-		return
-	}
+	res := run()
+	logger.Info("finish run server", zap.Error(res))
 }

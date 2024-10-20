@@ -44,20 +44,13 @@ func (s *Service) SetOrder() http.Handler {
 				return
 			}
 		}
-		accrualCheck, err := s.accrual.CheckOrder(string(orderNumber))
-		if err != nil {
-			switch err.Error() {
-			default:
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		}
 		order := model.Order{
+			Status:     "New",
+			Accrual:    0,
 			Number:     number,
 			UserID:     userID,
 			UploadedAt: time.Now().Format("2006-01-02T15:04:05Z"),
 		}
-		order.AddAccrual(accrualCheck.Accrual, accrualCheck.Status)
 		err = s.store.Orders().Create(&order)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -82,41 +75,7 @@ func (s *Service) GetOrders() http.Handler {
 				return
 			}
 		}
-		var res []model.Order
-		for _, order := range *orders {
-			switch order.Status {
-			case "PROCESSING", "NEW":
-				ac, err := s.accrual.CheckOrder(order.Number)
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				if ac.Status == "PROCESSED" {
-					order.AddAccrual(ac.Accrual, ac.Status)
-					res = append(res, order)
-					err = s.store.Orders().Update(&order)
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						return
-					}
-				} else if ac.Status == "INVALID" {
-					order.AddAccrual(0, ac.Status)
-					err = s.store.Orders().Update(&order)
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						return
-					}
-				}
-			case "INVALID":
-				continue
-			case "PROCESSED":
-				res = append(res, order)
-			default:
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-		}
+		res := *orders
 		sort.Slice(res, func(i, j int) bool {
 			dateI, _ := time.Parse("2006-01-02T15:04:05Z", res[i].UploadedAt)
 			dateJ, _ := time.Parse("2006-01-02T15:04:05Z", res[j].UploadedAt)
@@ -127,7 +86,6 @@ func (s *Service) GetOrders() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResp)
 	})
@@ -161,30 +119,6 @@ func (s *Service) GetBalance() http.Handler {
 		}
 		for _, order := range *orders {
 			switch order.Status {
-			case "PROCESSING", "NEW":
-				ac, err := s.accrual.CheckOrder(order.Number)
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				if ac.Status == "PROCESSED" {
-					order.AddAccrual(ac.Accrual, ac.Status)
-					res.Current += float64(ac.Accrual)
-					err = s.store.Orders().Update(&order)
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						return
-					}
-				} else if ac.Status == "INVALID" {
-					order.AddAccrual(0, ac.Status)
-					err = s.store.Orders().Update(&order)
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						return
-					}
-				}
-			case "INVALID":
-				continue
 			case "PROCESSED":
 				res.Current += float64(order.Accrual)
 			default:
@@ -255,30 +189,6 @@ func (s *Service) Withdraw() http.Handler {
 		current := 0.0
 		for _, order := range *orders {
 			switch order.Status {
-			case "PROCESSING", "NEW":
-				ac, err := s.accrual.CheckOrder(order.Number)
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				if ac.Status == "PROCESSED" {
-					order.AddAccrual(ac.Accrual, ac.Status)
-					current += float64(ac.Accrual)
-					err = s.store.Orders().Update(&order)
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						return
-					}
-				} else if ac.Status == "INVALID" {
-					order.AddAccrual(0, ac.Status)
-					err = s.store.Orders().Update(&order)
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						return
-					}
-				}
-			case "INVALID":
-				continue
 			case "PROCESSED":
 				current += float64(order.Accrual)
 			default:
