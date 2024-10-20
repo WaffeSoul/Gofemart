@@ -90,9 +90,8 @@ func (s *Service) GetOrders() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		logger.Info("check json", zap.String("data", string(jsonResp)))
-		w.Write(jsonResp)
 		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResp)
 	})
 
 }
