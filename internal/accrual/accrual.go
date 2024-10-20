@@ -25,12 +25,14 @@ type Accrual struct {
 
 func NewAccrual(conf *config.Config, store *storage.Store) *Accrual {
 	DoneCh := make(chan struct{})
+	ResultCh := make(chan model.Accrual)
 	acc := Accrual{
-		URL:    conf.Accrual,
-		store:  *store,
-		DoneCh: DoneCh,
+		URL:      conf.Accrual,
+		store:    *store,
+		DoneCh:   DoneCh,
+		ResultCh: ResultCh,
 	}
-	acc.CheckQueueCh()
+	acc.CheckQueue()
 	acc.SaveToDB()
 	return &acc
 }
@@ -66,15 +68,11 @@ func (a *Accrual) CheckOrder(order string) (*model.Accrual, error) {
 	}
 }
 
-func (a *Accrual) CheckQueueCh() {
-	// канал с результатом
+func (a *Accrual) CheckQueue() {
 	a.QueueCh = make(chan string)
 
-	// горутина, в которой добавляем к значению из inputCh единицу и отправляем результат в addRes
 	go func() {
-		// закрываем канал, когда горутина завершается
 		defer close(a.QueueCh)
-		// берём из канала inputCh значения, которые надо изменить
 		for data := range a.QueueCh {
 			logger.Info("check order", zap.String("order", data))
 			res, err := a.CheckOrder(data)
@@ -117,7 +115,7 @@ func (a *Accrual) AddToQueue(order string) {
 }
 
 func (a *Accrual) SaveToDB() {
-	a.ResultCh = make(chan model.Accrual)
+
 	go func() {
 		defer close(a.ResultCh)
 		for res := range a.ResultCh {
