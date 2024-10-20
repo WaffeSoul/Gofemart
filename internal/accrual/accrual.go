@@ -76,6 +76,7 @@ func (a *Accrual) CheckQueueCh() {
 		defer close(a.QueueCh)
 		// берём из канала inputCh значения, которые надо изменить
 		for data := range a.QueueCh {
+			logger.Info("check order", zap.String("order", data))
 			res, err := a.CheckOrder(data)
 			switch err {
 			case nil:
