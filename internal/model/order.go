@@ -23,6 +23,24 @@ func (o *Order) AddAccrual(accrual float64, status string) {
 	o.Accrual = accrual
 }
 
+func (o *Order) CheckStatus(status string) bool {
+	switch status {
+	case "REGISTERED":
+		status = "NEW"
+	case "INVALID":
+		status = "INVALID"
+	case "PROCESSING":
+		status = "PROCESSING"
+	case "PROCESSED":
+		status = "PROCESSED"
+	}
+	if o.Status == status {
+		return true
+	} else {
+		return false
+	}
+}
+
 type Accrual struct {
 	Order   string  `json:"order"`
 	Status  string  `json:"status"`

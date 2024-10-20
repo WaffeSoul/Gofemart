@@ -25,12 +25,10 @@ type Accrual struct {
 
 func NewAccrual(conf *config.Config, store *storage.Store) *Accrual {
 	DoneCh := make(chan struct{})
-	ResultCh := make(chan model.Accrual)
 	acc := Accrual{
-		URL:      conf.Accrual,
-		store:    *store,
-		DoneCh:   DoneCh,
-		ResultCh: ResultCh,
+		URL:    conf.Accrual,
+		store:  *store,
+		DoneCh: DoneCh,
 	}
 	acc.CheckQueue()
 	acc.SaveToDB()
@@ -83,25 +81,20 @@ func (a *Accrual) CheckQueue() {
 					a.AddToQueue(data)
 				case "INVALID":
 					res.Accrual = 0
-				case "PROCESSED":
-					continue
 				}
+				a.ResultCh <- *res
 			case errors.New("the order is not registered in the payment system"):
 				res = &model.Accrual{
 					Order:   data,
 					Status:  "INVALID",
 					Accrual: 0,
 				}
+				a.ResultCh <- *res
 			case errors.New("too many requests"):
 				time.Sleep(5 * time.Second)
 				a.AddToQueue(data)
 			default:
 				logger.Error("invalid get order status", zap.Error(err))
-			}
-			select {
-			case <-a.DoneCh:
-				return
-			case a.ResultCh <- *res:
 			}
 		}
 	}()
@@ -115,7 +108,7 @@ func (a *Accrual) AddToQueue(order string) {
 }
 
 func (a *Accrual) SaveToDB() {
-
+	a.ResultCh = make(chan model.Accrual)
 	go func() {
 		defer close(a.ResultCh)
 		for res := range a.ResultCh {
@@ -124,12 +117,13 @@ func (a *Accrual) SaveToDB() {
 				logger.Error("invalid get number", zap.Error(err))
 				continue
 			}
-			data.AddAccrual(res.Accrual, res.Status)
-			err = a.store.Orders().Update(data)
-			if err != nil {
-				logger.Error("invalid update order", zap.Error(err))
+			if !data.CheckStatus(res.Status) {
+				data.AddAccrual(res.Accrual, res.Status)
+				err = a.store.Orders().Update(data)
+				if err != nil {
+					logger.Error("invalid update order", zap.Error(err))
+				}
 			}
-
 		}
 	}()
 }
