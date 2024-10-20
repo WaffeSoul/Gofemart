@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"gofemart/internal/logger"
 	"gofemart/internal/luhn"
 	"gofemart/internal/model"
 	"io"
@@ -10,8 +9,6 @@ import (
 	"net/http"
 	"sort"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 func (s *Service) SetOrder() http.Handler {
