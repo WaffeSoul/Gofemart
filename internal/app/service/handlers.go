@@ -59,6 +59,7 @@ func (s *Service) SetOrder() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		s.accrual.AddToQueue(order.Number)
 		w.WriteHeader(http.StatusAccepted)
 	})
 }
