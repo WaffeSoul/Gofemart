@@ -23,6 +23,11 @@ func (s *Service) SignUp() http.Handler {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		user, _ := s.store.Users().FindByName(userReq.Username)
+		if user != nil {
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
 		hashedPassword, err := crypto.HashPassword(userReq.Password)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -31,9 +36,15 @@ func (s *Service) SignUp() http.Handler {
 		userReq.Password = hashedPassword
 		err = s.store.Users().Create(&userReq)
 		if err != nil {
-
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
-		accessToken, refreshToken, err := s.JwtManager.GenerateTokens(context.Background(), userReq.Id, s.store)
+		userNew, err := s.store.Users().FindByName(userReq.Username)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		accessToken, refreshToken, err := s.JwtManager.GenerateTokens(context.Background(), userNew.ID, s.store)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -71,7 +82,7 @@ func (s *Service) SignIn() http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		accessToken, refreshToken, err := s.JwtManager.GenerateTokens(context.Background(), user.Id, s.store)
+		accessToken, refreshToken, err := s.JwtManager.GenerateTokens(context.Background(), user.ID, s.store)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

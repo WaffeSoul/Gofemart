@@ -1,37 +1,31 @@
 package main
 
 import (
-	"fmt"
+	"gofemart/internal/accrual"
 	"gofemart/internal/app"
 	"gofemart/internal/app/service"
-	"gofemart/internal/jwt"
+	"gofemart/internal/config"
+	"gofemart/internal/logger"
 	"gofemart/internal/storage"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 func run() error {
-	parseFlags()
-	db := storage.InitDB(addrDB)
-	if db == nil {
-		return fmt.Errorf("failed to connect to database")
-	}
-	store := storage.NewDatabase(db)
-	if err := storage.MigrateTables(store); err != nil {
-		return err
-	}
-	jwtManager, err := jwt.NewJWTManager("sfjvpasasdf", "30m", "24h")
-	if err != nil {
-		return err
-	}
-	s := service.NewService(store, *jwtManager)
+	logger.InitLogger(false)
+	conf := config.NewConfig()
+	store := storage.NewStore(conf)
+	acc := accrual.NewAccrual(conf, &store)
+	defer acc.Finish()
+	srv := service.NewService(store, acc)
 	mux := http.NewServeMux()
-	app.AddRoute(mux, s)
-	return http.ListenAndServe("localhost:8090", mux)
+	app.AddRoute(mux, srv)
+	res := http.ListenAndServe(conf.Server, mux)
+	return res
 }
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Println(err)
-		return
-	}
+	res := run()
+	logger.Info("finish run server", zap.Error(res))
 }

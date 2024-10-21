@@ -4,6 +4,7 @@ import (
 	"context"
 	"gofemart/internal/model"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -26,7 +27,7 @@ func (p *Repository) Create(user *model.User) error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `insert into users(username, password) values ($1, $2)`, user.Username, user.Password)
+	_, err = conn.Exec(context.Background(), createSQL, user.Username, user.Password)
 	if err != nil {
 		return err
 	}
@@ -39,26 +40,32 @@ func (p *Repository) FindByName(name string) (*model.User, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	data := &model.User{}
-	err = conn.QueryRow(context.Background(), "select * from users where name=$1", name).Scan(&data)
+	rows, err := conn.Query(context.Background(), findByNameSQL, name)
 	if err != nil {
 		return nil, err
 	}
-	return data, nil
+	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.User])
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
 }
 
-func (p *Repository) FindById(id int) (*model.User, error) {
+func (p *Repository) FindByID(id int) (*model.User, error) {
 	conn, err := p.db.Acquire(context.Background())
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Release()
-	data := &model.User{}
-	err = conn.QueryRow(context.Background(), "select * from users where id=$1", id).Scan(&data)
+	rows, err := conn.Query(context.Background(), findByIDSQL, id)
 	if err != nil {
 		return nil, err
 	}
-	return data, nil
+	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.User])
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
 }
 
 func (p *Repository) Migrate() error {
@@ -67,11 +74,7 @@ func (p *Repository) Migrate() error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS users (
-		id serial PRIMARY KEY,
-		username VARCHAR(255) UNIQUE,
-		password VARCHAR(255)
-);`)
+	_, err = conn.Exec(context.Background(), migrateSQL)
 	if err != nil {
 		return err
 	}
