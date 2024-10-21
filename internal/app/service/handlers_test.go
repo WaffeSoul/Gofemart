@@ -107,11 +107,12 @@ func TestService_SetOrder(t *testing.T) {
 			w := httptest.NewRecorder()
 			got := ser.SetOrder()
 			got.ServeHTTP(w, r.WithContext(ctx))
+			defer w.Result().Body.Close()
+			defer r.Body.Close()
 			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
 				t.Errorf("Service.SetOrder() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
 			}
-			w.Result().Body.Close()
-			r.Body.Close()
+
 		})
 	}
 }
@@ -189,14 +190,14 @@ func TestService_GetOrders(t *testing.T) {
 			w := httptest.NewRecorder()
 			got := ser.GetOrders()
 			got.ServeHTTP(w, r.WithContext(ctx))
+			defer w.Result().Body.Close()
+			defer r.Body.Close()
 			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
 				t.Errorf("Service.GetOrders() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
 			}
 			if !reflect.DeepEqual(w.Body.String(), tt.want.body) {
 				t.Errorf("Service.GetOrders() %v = %v, want %v", tt.name, w.Body.String(), tt.want.body)
 			}
-			w.Result().Body.Close()
-			r.Body.Close()
 		})
 	}
 }
