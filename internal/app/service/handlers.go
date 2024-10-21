@@ -46,7 +46,7 @@ func (s *Service) SetOrder() http.Handler {
 			}
 		}
 		order := model.Order{
-			Status:     "New",
+			Status:     "NEW",
 			Accrual:    0,
 			Number:     number,
 			UserID:     userID,
