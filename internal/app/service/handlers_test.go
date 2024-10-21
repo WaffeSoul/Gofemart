@@ -4,6 +4,7 @@ import (
 	"context"
 	"gofemart/internal/accrual"
 	"gofemart/internal/config"
+	"gofemart/internal/logger"
 	"gofemart/internal/model"
 	"gofemart/internal/storage"
 	"net/http/httptest"
@@ -14,6 +15,7 @@ import (
 )
 
 func TestService_SetOrder(t *testing.T) {
+	logger.InitLogger(false)
 	conf := config.Config{
 		DB:      "postgresql://test:test@127.0.0.1:5433/test?sslmode=disable",
 		Accrual: "http://localhost:8080",
@@ -21,11 +23,11 @@ func TestService_SetOrder(t *testing.T) {
 	}
 	store := storage.NewStore(&conf)
 	store.Users().Create(&model.User{
-		Username: "test",
+		Username: "test1",
 		Password: "test",
 	})
 	store.Users().Create(&model.User{
-		Username: "test1",
+		Username: "test",
 		Password: "test",
 	})
 	store.Orders().Create(&model.Order{
@@ -44,7 +46,7 @@ func TestService_SetOrder(t *testing.T) {
 	})
 	acc := accrual.NewAccrual(&conf, &store)
 	defer acc.Finish()
-	ser := NewService(store, nil)
+	ser := NewService(store, acc)
 	type args struct {
 		userID int
 		body   string
@@ -106,13 +108,14 @@ func TestService_SetOrder(t *testing.T) {
 			got := ser.SetOrder()
 			got.ServeHTTP(w, r.WithContext(ctx))
 			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
-				t.Errorf("Service.SetOrder() = %v, want %v", w.Result().StatusCode, tt.want.code)
+				t.Errorf("Service.SetOrder() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
 			}
 		})
 	}
 }
 
 func TestService_GetOrders(t *testing.T) {
+	logger.InitLogger(false)
 	conf := config.Config{
 		DB:      "postgresql://test:test@127.0.0.1:5433/test?sslmode=disable",
 		Accrual: "http://localhost:8080",
@@ -120,30 +123,30 @@ func TestService_GetOrders(t *testing.T) {
 	}
 	store := storage.NewStore(&conf)
 	store.Users().Create(&model.User{
-		Username: "test",
+		Username: "test3",
 		Password: "test",
 	})
 	store.Users().Create(&model.User{
-		Username: "test1",
+		Username: "test4",
 		Password: "test",
 	})
 	store.Orders().Create(&model.Order{
-		Number:     "3620637573",
-		UserID:     1,
+		Number:     "1087831903",
+		UserID:     3,
 		Status:     "NEW",
 		Accrual:    0,
 		UploadedAt: "2020-12-10T15:15:45+03:00",
 	})
 	store.Orders().Create(&model.Order{
-		Number:     "3637279245",
-		UserID:     1,
+		Number:     "6751943355",
+		UserID:     3,
 		Status:     "NEW",
 		Accrual:    0,
 		UploadedAt: "2020-12-10T15:12:01+03:00",
 	})
 	acc := accrual.NewAccrual(&conf, &store)
 	defer acc.Finish()
-	ser := NewService(store, nil)
+	ser := NewService(store, acc)
 	type args struct {
 		userID int
 	}
@@ -159,17 +162,17 @@ func TestService_GetOrders(t *testing.T) {
 		{
 			name: "200 OK",
 			args: args{
-				userID: 1,
+				userID: 3,
 			},
 			want: want{
 				code: 200,
-				body: "[{\"number\":\"3620637573\",\"user_id\":1,\"status\":\"NEW\",\"accrual\":0,\"uploaded_at\":\"2020-12-10T15:15:45+03:00\"},{\"number\":\"3637279245\",\"user_id\":1,\"status\":\"NEW\",\"accrual\":0,\"uploaded_at\":\"2020-12-10T15:12:01+03:00\"}]",
+				body: "[{\"number\":\"1087831903\",\"user_id\":3,\"status\":\"NEW\",\"accrual\":0,\"uploaded_at\":\"2020-12-10T15:15:45+03:00\"},{\"number\":\"6751943355\",\"user_id\":3,\"status\":\"NEW\",\"accrual\":0,\"uploaded_at\":\"2020-12-10T15:12:01+03:00\"}]",
 			},
 		},
 		{
 			name: "204",
 			args: args{
-				userID: 2,
+				userID: 4,
 			},
 			want: want{
 				code: 204,
@@ -185,10 +188,10 @@ func TestService_GetOrders(t *testing.T) {
 			got := ser.GetOrders()
 			got.ServeHTTP(w, r.WithContext(ctx))
 			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
-				t.Errorf("Service.GetOrders() = %v, want %v", w.Result().StatusCode, tt.want.code)
+				t.Errorf("Service.GetOrders() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
 			}
 			if !reflect.DeepEqual(w.Body.String(), tt.want.body) {
-				t.Errorf("Service.GetOrders() = %v, want %v", w.Body.String(), tt.want.body)
+				t.Errorf("Service.GetOrders() %v = %v, want %v", tt.name, w.Body.String(), tt.want.body)
 			}
 		})
 	}

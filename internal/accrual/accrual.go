@@ -102,7 +102,13 @@ func (a *Accrual) CheckQueue() {
 
 func (a *Accrual) AddToQueue(order string) {
 	go func() {
-		a.QueueCh <- order
+		select {
+		case <-a.DoneCh:
+			return
+		case a.QueueCh <- order:
+			return
+		}
+
 	}()
 }
 
