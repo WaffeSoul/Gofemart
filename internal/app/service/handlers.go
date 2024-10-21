@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"gofemart/internal/logger"
 	"gofemart/internal/luhn"
 	"gofemart/internal/model"
 	"io"
@@ -9,6 +10,8 @@ import (
 	"net/http"
 	"sort"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func (s *Service) SetOrder() http.Handler {
@@ -25,6 +28,7 @@ func (s *Service) SetOrder() http.Handler {
 			return
 		}
 		userID := r.Context().Value(model.UserIDKey).(int)
+		logger.Info("get user id", zap.Int("user_id", userID))
 		check, err := s.store.Orders().FindByNumber(number)
 		if err != nil {
 			switch err.Error() {
@@ -35,7 +39,9 @@ func (s *Service) SetOrder() http.Handler {
 				return
 			}
 		}
+
 		if check != nil {
+			logger.Info("check user id", zap.Int("user_id", check.UserID))
 			if check.UserID == userID {
 				w.WriteHeader(http.StatusOK)
 				return
@@ -65,6 +71,7 @@ func (s *Service) GetOrders() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		userID := r.Context().Value(model.UserIDKey).(int)
+		logger.Info("get user id", zap.Int("user_id", userID))
 		orders, err := s.store.Orders().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
