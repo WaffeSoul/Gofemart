@@ -77,6 +77,10 @@ func (s *Service) GetOrders() http.Handler {
 				return
 			}
 		}
+		if len(*orders) == 0 {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		res := *orders
 		sort.Slice(res, func(i, j int) bool {
 			dateI, _ := time.Parse("2006-01-02T15:04:05Z", res[i].UploadedAt)
