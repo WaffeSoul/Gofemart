@@ -7,10 +7,7 @@ import (
 	"strings"
 
 	"gofemart/internal/jwt"
-	"gofemart/internal/logger"
 	"gofemart/internal/model"
-
-	"go.uber.org/zap"
 )
 
 func JWTInterceptor(jwtM *jwt.JWTManager, next http.Handler) http.Handler {
@@ -35,7 +32,6 @@ func JWTInterceptor(jwtM *jwt.JWTManager, next http.Handler) http.Handler {
 		}
 
 		userID := userClaims.UserID
-		logger.Info("get user id", zap.Int("user_id", userID))
 		ctx := context.WithValue(r.Context(), model.UserIDKey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

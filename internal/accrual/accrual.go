@@ -72,7 +72,6 @@ func (a *Accrual) CheckQueue() {
 	go func() {
 		defer close(a.QueueCh)
 		for data := range a.QueueCh {
-			logger.Info("check order", zap.String("order", data))
 			res, err := a.CheckOrder(data)
 			switch err {
 			case nil:

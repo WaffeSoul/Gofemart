@@ -39,7 +39,12 @@ func (s *Service) SignUp() http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		accessToken, refreshToken, err := s.JwtManager.GenerateTokens(context.Background(), userReq.ID, s.store)
+		userNew, err := s.store.Users().FindByName(userReq.Username)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		accessToken, refreshToken, err := s.JwtManager.GenerateTokens(context.Background(), userNew.ID, s.store)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

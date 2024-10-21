@@ -10,7 +10,7 @@ type User struct {
 
 type UserClaims struct {
 	jwt.RegisteredClaims
-	UserID int
+	UserID int `json:"user_id"`
 }
 
 type Balance struct {
