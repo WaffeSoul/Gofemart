@@ -127,9 +127,6 @@ func (s *Service) GetBalance() http.Handler {
 			switch order.Status {
 			case "PROCESSED":
 				res.Current += float64(order.Accrual)
-			default:
-				w.WriteHeader(http.StatusInternalServerError)
-				return
 			}
 
 		}
@@ -254,6 +251,10 @@ func (s *Service) Withdrawals() http.Handler {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
+		}
+		if len(*res) == 0 {
+			w.WriteHeader(http.StatusNoContent)
+			return
 		}
 		resSort := *res
 		sort.Slice(resSort, func(i, j int) bool {
