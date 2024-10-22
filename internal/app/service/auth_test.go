@@ -74,8 +74,8 @@ func TestService_SignIn(t *testing.T) {
 			got.ServeHTTP(w, r)
 			resp := w.Result()
 			defer resp.Body.Close()
-			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
-				t.Errorf("Service.SignUp() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
+			if !reflect.DeepEqual(resp.StatusCode, tt.want.code) {
+				t.Errorf("Service.SignUp() %v = %v, want %v", tt.name, resp.StatusCode, tt.want.code)
 			}
 		})
 	}
@@ -142,8 +142,8 @@ func TestService_SignUp(t *testing.T) {
 			got.ServeHTTP(w, r)
 			resp := w.Result()
 			defer resp.Body.Close()
-			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
-				t.Errorf("Service.SignUp() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
+			if !reflect.DeepEqual(resp.StatusCode, tt.want.code) {
+				t.Errorf("Service.SignUp() %v = %v, want %v", tt.name, resp.StatusCode, tt.want.code)
 			}
 		})
 	}

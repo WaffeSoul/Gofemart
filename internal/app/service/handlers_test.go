@@ -110,8 +110,8 @@ func TestService_SetOrder(t *testing.T) {
 			got.ServeHTTP(w, r.WithContext(ctx))
 			resp := w.Result()
 			defer resp.Body.Close()
-			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
-				t.Errorf("Service.SetOrder() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
+			if !reflect.DeepEqual(resp.StatusCode, tt.want.code) {
+				t.Errorf("Service.SetOrder() %v = %v, want %v", tt.name, resp.StatusCode, tt.want.code)
 			}
 		})
 	}
@@ -301,8 +301,8 @@ func TestService_GetBalance(t *testing.T) {
 			got.ServeHTTP(w, r.WithContext(ctx))
 			resp := w.Result()
 			defer resp.Body.Close()
-			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
-				t.Errorf("Service.GetBalance() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
+			if !reflect.DeepEqual(resp.StatusCode, tt.want.code) {
+				t.Errorf("Service.GetBalance() %v = %v, want %v", tt.name, resp.StatusCode, tt.want.code)
 			}
 			if !reflect.DeepEqual(w.Body.String(), tt.want.body) {
 				t.Errorf("Service.GetBalance() %v = %v, want %v", tt.name, w.Body.String(), tt.want.body)
@@ -414,8 +414,8 @@ func TestService_Withdraw(t *testing.T) {
 			got.ServeHTTP(w, r.WithContext(ctx))
 			resp := w.Result()
 			defer resp.Body.Close()
-			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
-				t.Errorf("Service.Withdraw() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
+			if !reflect.DeepEqual(resp.StatusCode, tt.want.code) {
+				t.Errorf("Service.Withdraw() %v = %v, want %v", tt.name, resp.StatusCode, tt.want.code)
 			}
 		})
 	}
@@ -493,8 +493,8 @@ func TestService_Withdrawals(t *testing.T) {
 			got.ServeHTTP(w, r.WithContext(ctx))
 			resp := w.Result()
 			defer resp.Body.Close()
-			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
-				t.Errorf("Service.Withdrawals() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
+			if !reflect.DeepEqual(resp.StatusCode, tt.want.code) {
+				t.Errorf("Service.Withdrawals() %v = %v, want %v", tt.name, resp.StatusCode, tt.want.code)
 			}
 			if !reflect.DeepEqual(w.Body.String(), tt.want.body) {
 				t.Errorf("Service.Withdrawals() %v = %v, want %v", tt.name, w.Body.String(), tt.want.body)
