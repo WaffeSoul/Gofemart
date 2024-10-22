@@ -105,12 +105,12 @@ func TestService_SetOrder(t *testing.T) {
 			r := httptest.NewRequest("POST", "/api/user/orders", strings.NewReader(tt.args.body))
 			ctx := context.WithValue(r.Context(), model.UserIDKey, tt.args.userID)
 			w := httptest.NewRecorder()
+			defer w.Result().Body.Close()
 			got := ser.SetOrder()
 			got.ServeHTTP(w, r.WithContext(ctx))
 			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
 				t.Errorf("Service.SetOrder() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
 			}
-			w.Result().Body.Close()
 
 		})
 	}
@@ -187,6 +187,7 @@ func TestService_GetOrders(t *testing.T) {
 			r := httptest.NewRequest("GET", "/api/user/orders", nil)
 			ctx := context.WithValue(r.Context(), model.UserIDKey, tt.args.userID)
 			w := httptest.NewRecorder()
+			defer w.Result().Body.Close()
 			got := ser.GetOrders()
 			got.ServeHTTP(w, r.WithContext(ctx))
 			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
