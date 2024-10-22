@@ -23,6 +23,10 @@ func (s *Service) SignUp() http.Handler {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		if userReq.Username == "" || userReq.Password == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		user, _ := s.store.Users().FindByName(userReq.Username)
 		if user != nil {
 			w.WriteHeader(http.StatusConflict)
@@ -72,6 +76,10 @@ func (s *Service) SignIn() http.Handler {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		if userReq.Username == "" || userReq.Password == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		user, err := s.store.Users().FindByName(userReq.Username)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -101,16 +109,16 @@ func (s *Service) SignIn() http.Handler {
 	})
 }
 
-func (s *Service) Refresh(ctx context.Context, refresh string) (*string, *string, error) {
-	claims, err := s.JwtManager.VerifyToken(ctx, refresh)
-	if err != nil {
-		return nil, nil, err
-	}
+// func (s *Service) Refresh(ctx context.Context, refresh string) (*string, *string, error) {
+// 	claims, err := s.JwtManager.VerifyToken(ctx, refresh)
+// 	if err != nil {
+// 		return nil, nil, err
+// 	}
 
-	accessToken, refreshToken, err := s.JwtManager.GenerateTokens(ctx, claims.UserID, s.store)
-	if err != nil {
-		return nil, nil, err
-	}
+// 	accessToken, refreshToken, err := s.JwtManager.GenerateTokens(ctx, claims.UserID, s.store)
+// 	if err != nil {
+// 		return nil, nil, err
+// 	}
 
-	return &accessToken, &refreshToken, nil
-}
+// 	return &accessToken, &refreshToken, nil
+// }

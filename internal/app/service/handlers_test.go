@@ -108,10 +108,11 @@ func TestService_SetOrder(t *testing.T) {
 			w := httptest.NewRecorder()
 			got := ser.SetOrder()
 			got.ServeHTTP(w, r.WithContext(ctx))
+			resp := w.Result()
+			defer resp.Body.Close()
 			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
 				t.Errorf("Service.SetOrder() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
 			}
-			w.Result().Body.Close()
 		})
 	}
 }
@@ -298,6 +299,8 @@ func TestService_GetBalance(t *testing.T) {
 
 			got := ser.GetBalance()
 			got.ServeHTTP(w, r.WithContext(ctx))
+			resp := w.Result()
+			defer resp.Body.Close()
 			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
 				t.Errorf("Service.GetBalance() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
 			}
@@ -409,6 +412,8 @@ func TestService_Withdraw(t *testing.T) {
 			w := httptest.NewRecorder()
 			got := ser.Withdraw()
 			got.ServeHTTP(w, r.WithContext(ctx))
+			resp := w.Result()
+			defer resp.Body.Close()
 			if !reflect.DeepEqual(w.Result().StatusCode, tt.want.code) {
 				t.Errorf("Service.Withdraw() %v = %v, want %v", tt.name, w.Result().StatusCode, tt.want.code)
 			}
