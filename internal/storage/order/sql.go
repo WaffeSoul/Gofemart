@@ -12,4 +12,5 @@ var (
 		accrual double precision,
 		uploaded_at VARCHAR(255)
 	);`
+	dropSQL = `DROP TABLE IF EXISTS orders;`
 )

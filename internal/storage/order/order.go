@@ -99,3 +99,13 @@ func (p *Repository) Migrate() error {
 	_, err = conn.Exec(context.Background(), migrateSQL)
 	return err
 }
+
+func (p *Repository) Drop() error {
+	conn, err := p.db.Acquire(context.Background())
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+	_, err = conn.Exec(context.Background(), dropSQL)
+	return err
+}

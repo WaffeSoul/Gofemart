@@ -10,4 +10,5 @@ var (
 		sum double precision,
 		processed_at VARCHAR(255)
 	);`
+	dropSQL = `DROP TABLE IF EXISTS withdrawals;`
 )

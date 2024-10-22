@@ -8,6 +8,7 @@ type UserRepository interface {
 	Create(user *model.User) error
 	Delete(name string) error
 	Migrate() error
+	Drop() error
 }
 
 type OrderRepository interface {
@@ -17,6 +18,7 @@ type OrderRepository interface {
 	Delete(name string) error
 	Update(order *model.Order) error
 	Migrate() error
+	Drop() error
 }
 
 type WithdrawRepository interface {
@@ -25,4 +27,5 @@ type WithdrawRepository interface {
 	Create(user *model.Withdraw) error
 	Delete(name string) error
 	Migrate() error
+	Drop() error
 }
