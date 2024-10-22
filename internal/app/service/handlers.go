@@ -203,8 +203,10 @@ func (s *Service) Withdraw() http.Handler {
 				return
 			}
 		}
-		for _, withdraw := range *withdraws {
-			draw += withdraw.Sum
+		if withdraws != nil {
+			for _, withdraw := range *withdraws {
+				draw += withdraw.Sum
+			}
 		}
 		current -= draw
 		if current < resJSON.Sum {
