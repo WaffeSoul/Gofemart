@@ -1,9 +1,11 @@
-package user
+package withdrawal
 
 import (
 	"context"
+	"errors"
 	"gofemart/internal/model"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -27,7 +29,7 @@ func (p *Repository) Create(draw *model.Withdraw) error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `insert into withdrawals(user_id, order_mumber,sum,processed_at) values ($1, $2)`, draw.UserId, draw.Order, draw.Sum, draw.ProcessedAt)
+	_, err = conn.Exec(context.Background(), createSQL, draw.UserID, draw.OrderNumber, draw.Sum, draw.ProcessedAt)
 	if err != nil {
 		// Add error
 		return err
@@ -42,29 +44,44 @@ func (p *Repository) FindByOrder(order string) (*model.Withdraw, error) {
 		return nil, err
 	}
 	defer conn.Release()
-	data := &model.Withdraw{}
-	err = conn.QueryRow(context.Background(), "select * from withdrawals where order_mumber=$1", order).Scan(&data)
-	if err != nil {
-		// Add error
+	rows, err := conn.Query(context.Background(), findByOrderSQL, order)
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no number in db")
+	} else if err != nil {
 		return nil, err
 	}
-	return data, nil
+	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Withdraw])
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no number in db")
+	} else if err != nil {
+		return nil, err
+	}
+	return &data, nil
 }
 
-func (p *Repository) FindByUserId(id int) (*[]model.Withdraw, error) {
+func (p *Repository) FindByUserID(id int) (*[]model.Withdraw, error) {
 	conn, err := p.db.Acquire(context.Background())
 	if err != nil {
 		// Add error
 		return nil, err
 	}
 	defer conn.Release()
-	data := &[]model.Withdraw{}
-	err = conn.QueryRow(context.Background(), "select * from withdrawals where user_id=$1", id).Scan(&data)
-	if err != nil {
-		// Add error
+	rows, err := conn.Query(context.Background(), findByUserIDSQL, id)
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no user_id in db")
+	} else if err != nil {
 		return nil, err
 	}
-	return data, nil
+	data, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Withdraw])
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no user_id in db")
+	} else if err != nil {
+		return nil, err
+	}
+	if len(data) == 0 {
+		return nil, errors.New("no user_id in db")
+	}
+	return &data, nil
 }
 
 func (p *Repository) Migrate() error {
@@ -74,15 +91,20 @@ func (p *Repository) Migrate() error {
 		return err
 	}
 	defer conn.Release()
-	_, err = conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS withdrawals(
-		order_mumber VARCHAR(255) PRIMARY KEY,
-		user_id INTEGER REFERENCES users(id),
-		sum INTEGER,
-		processed_at DATE
-	);`)
+	_, err = conn.Exec(context.Background(), migrateSQL)
 	if err != nil {
 		// Add error
 		return err
 	}
 	return nil
+}
+
+func (p *Repository) Drop() error {
+	conn, err := p.db.Acquire(context.Background())
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+	_, err = conn.Exec(context.Background(), dropSQL)
+	return err
 }

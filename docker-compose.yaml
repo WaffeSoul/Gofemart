@@ -1,0 +1,26 @@
+# version: '2.4'
+
+services:
+  db:
+    image: postgres:15.3
+    restart: always
+    command: "postgres -c shared_buffers=256MB -c max_connections=200"
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test
+      PGDATABASE: test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - postgres_test:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:5433:5432
+      
+volumes:
+  "postgres_test":
+

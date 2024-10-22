@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"gofemart/internal/jwt"
+	"gofemart/internal/model"
 )
 
 func JWTInterceptor(jwtM *jwt.JWTManager, next http.Handler) http.Handler {
@@ -30,8 +31,8 @@ func JWTInterceptor(jwtM *jwt.JWTManager, next http.Handler) http.Handler {
 			return
 		}
 
-		userId := userClaims.UserID
-		ctx := context.WithValue(r.Context(), "userId", userId)
+		userID := userClaims.UserID
+		ctx := context.WithValue(r.Context(), model.UserIDKey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
