@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"gofemart/internal/model"
 
 	"github.com/jackc/pgx/v5"
@@ -45,7 +46,9 @@ func (p *Repository) FindByName(name string) (*model.User, error) {
 		return nil, err
 	}
 	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.User])
-	if err != nil {
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no name in db")
+	} else if err != nil {
 		return nil, err
 	}
 	return &data, nil
@@ -62,7 +65,9 @@ func (p *Repository) FindByID(id int) (*model.User, error) {
 		return nil, err
 	}
 	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.User])
-	if err != nil {
+	if err == pgx.ErrNoRows {
+		return nil, errors.New("no id in db")
+	} else if err != nil {
 		return nil, err
 	}
 	return &data, nil

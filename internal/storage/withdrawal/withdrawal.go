@@ -52,7 +52,7 @@ func (p *Repository) FindByOrder(order string) (*model.Withdraw, error) {
 	}
 	data, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Withdraw])
 	if err == pgx.ErrNoRows {
-		return nil, errors.New("no user_id in db")
+		return nil, errors.New("no number in db")
 	} else if err != nil {
 		return nil, err
 	}
@@ -78,6 +78,9 @@ func (p *Repository) FindByUserID(id int) (*[]model.Withdraw, error) {
 	} else if err != nil {
 		return nil, err
 	}
+	if len(data) == 0 {
+		return nil, errors.New("no user_id in db")
+	}
 	return &data, nil
 }
 
@@ -95,7 +98,6 @@ func (p *Repository) Migrate() error {
 	}
 	return nil
 }
-
 
 func (p *Repository) Drop() error {
 	conn, err := p.db.Acquire(context.Background())

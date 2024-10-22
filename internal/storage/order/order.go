@@ -66,6 +66,9 @@ func (p *Repository) FindByUserID(id int) (*[]model.Order, error) {
 	} else if err != nil {
 		return nil, err
 	}
+	if len(data) == 0 {
+		return nil, errors.New("no user_id in db")
+	}
 	return &data, nil
 }
 
