@@ -77,10 +77,6 @@ func (s *Service) GetOrders() http.Handler {
 				return
 			}
 		}
-		if len(*orders) == 0 {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
 		res := *orders
 		sort.Slice(res, func(i, j int) bool {
 			dateI, _ := time.Parse("2006-01-02T15:04:05Z", res[i].UploadedAt)
@@ -194,9 +190,6 @@ func (s *Service) Withdraw() http.Handler {
 			switch order.Status {
 			case "PROCESSED":
 				current += float64(order.Accrual)
-			default:
-				w.WriteHeader(http.StatusInternalServerError)
-				return
 			}
 
 		}
@@ -205,7 +198,6 @@ func (s *Service) Withdraw() http.Handler {
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
-
 				return
 			default:
 				w.WriteHeader(http.StatusInternalServerError)
@@ -251,10 +243,6 @@ func (s *Service) Withdrawals() http.Handler {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-		}
-		if len(*res) == 0 {
-			w.WriteHeader(http.StatusNoContent)
-			return
 		}
 		resSort := *res
 		sort.Slice(resSort, func(i, j int) bool {
