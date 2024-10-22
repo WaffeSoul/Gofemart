@@ -8,6 +8,12 @@ type Order struct {
 	UploadedAt string  `json:"uploaded_at"`
 }
 
+type Accrual struct {
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float64 `json:"accrual"`
+}
+
 func (o *Order) AddAccrual(accrual float64, status string) {
 	switch status {
 	case "REGISTERED":
@@ -39,10 +45,4 @@ func (o *Order) CheckStatus(status string) bool {
 	} else {
 		return false
 	}
-}
-
-type Accrual struct {
-	Order   string  `json:"order"`
-	Status  string  `json:"status"`
-	Accrual float64 `json:"accrual"`
 }
