@@ -191,14 +191,13 @@ func (s *Service) Withdraw() http.Handler {
 			case "PROCESSED":
 				current += float64(order.Accrual)
 			}
-
 		}
 		draw := 0.0
 		withdraws, err := s.store.Withdrawals().FindByUserID(userID)
 		if err != nil {
 			switch err.Error() {
 			case "no user_id in db":
-				return
+				break
 			default:
 				w.WriteHeader(http.StatusInternalServerError)
 				return
